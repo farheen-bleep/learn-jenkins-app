@@ -2,57 +2,67 @@ pipeline {
     agent any
 
     stages {
+
         stage('Build') {
-            agent{
-                docker{
+            agent {
+                docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
+
             steps {
-                sh'''
+                sh '''
                     ls -la
                     node --version
                     npm --version
+
                     npm ci
                     npm run build
+
                     ls -la
                 '''
             }
         }
-        stage('Test'){
-            agent{
-                docker{
+
+        stage('Test') {
+            agent {
+                docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
-            steps{
-                sh '''test -f build/index.html
+
+            steps {
+                sh '''
+                    test -f build/index.html
                     npm test
                     ls -la
                     ls -la test-results
                 '''
             }
         }
-        stage('Build') {
-            agent{
-                docker{
+
+        stage('Deploy') {
+            agent {
+                docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
+
             steps {
-                sh'''
+                sh '''
                     npm install netlify-cli
                     node_modules/.bin/netlify --version
                 '''
             }
+        }
     }
-    post{
-        always{
+
+    post {
+        always {
             junit 'test-results/junits.xml'
         }
     }
-}
 }
